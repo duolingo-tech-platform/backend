@@ -8,6 +8,12 @@ namespace DuolingoTechPlatform.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
-        // Adicione outros DbSets conforme necessário
+        public DbSet<Course> Courses { get; set; }
+        public DbSet<Module> Modules { get; set; }
+        public DbSet<Lesson> Lessons { get; set; }
+        public DbSet<Exercise> Exercises { get; set; }
+        public DbSet<ExerciseOption> ExerciseOptions { get; set; }
+        public DbSet<UserProgress> UserProgress { get; set; }
+        public DbSet<UserAnswer> UserAnswers { get; set; }
     }
 }
