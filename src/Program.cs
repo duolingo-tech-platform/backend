@@ -1,19 +1,24 @@
 using DuolingoTechPlatform.Helpers;
-builder.Services.AddSingleton<JwtHelper>();
-
 using DuolingoTechPlatform.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
+using Microsoft.OpenApi;
+
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSingleton<JwtHelper>();
 
 // Conexão com PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Configuração JWT
+
+builder.Services.AddSingleton<JwtHelper>();
+
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "super_secret_jwt_key_change_me";
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "DuolingoTechPlatform";
 
@@ -63,6 +68,10 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 
+
+builder.Services.AddAuthorization();
+builder.Services.AddControllers();
+
 var app = builder.Build();
 
 
@@ -76,5 +85,7 @@ app.UseSwaggerUI(c =>
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapControllers();
 
 app.Run();
