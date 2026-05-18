@@ -24,5 +24,19 @@ namespace DuolingoTechPlatform.Controllers
             if (lesson == null) return NotFound();
             return Ok(lesson);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] Lesson lesson)
+        {
+            if (string.IsNullOrWhiteSpace(lesson.Title))
+                return BadRequest(new { message = "Title is required." });
+            if (lesson.ModuleId == Guid.Empty)
+                return BadRequest(new { message = "ModuleId is required." });
+
+            lesson.Id = Guid.NewGuid();
+            _context.Lessons.Add(lesson);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetById), new { id = lesson.Id }, lesson);
+        }
     }
 }

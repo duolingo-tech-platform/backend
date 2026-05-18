@@ -44,5 +44,22 @@ namespace DuolingoTechPlatform.Controllers
                 lessons = progress.Select(up => up.LessonId)
             });
         }
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> Register([FromBody] UserProgress userProgress)
+        {
+            var userId = User.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
+            if (userId == null) return Unauthorized();
+            if (userProgress.LessonId == Guid.Empty)
+                return BadRequest(new { message = "LessonId is required." });
+
+            userProgress.Id = Guid.NewGuid();
+            userProgress.UserId = Guid.Parse(userId);
+            userProgress.CompletedAt = DateTime.UtcNow;
+            _context.UserProgress.Add(userProgress);
+            await _context.SaveChangesAsync();
+            return Ok(userProgress);
+        }
     }
 }

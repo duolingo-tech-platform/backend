@@ -24,6 +24,18 @@ namespace DuolingoTechPlatform.Controllers
             return Ok(courses);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] Course course)
+        {
+            if (string.IsNullOrWhiteSpace(course.Title))
+                return BadRequest(new { message = "Title is required." });
+
+            course.Id = Guid.NewGuid();
+            _context.Courses.Add(course);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetById), new { id = course.Id }, course);
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {

@@ -66,5 +66,18 @@ namespace DuolingoTechPlatform.Controllers
                 .ToListAsync();
             return Ok(exercises);
         }
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] Exercise exercise)
+        {
+            if (string.IsNullOrWhiteSpace(exercise.Question))
+                return BadRequest(new { message = "Question is required." });
+            if (exercise.LessonId == Guid.Empty)
+                return BadRequest(new { message = "LessonId is required." });
+
+            exercise.Id = Guid.NewGuid();
+            _context.Exercises.Add(exercise);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetByLesson), new { lessonId = exercise.LessonId }, exercise);
+        }
     }
 }
