@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace DuolingoTechPlatform.Controllers
@@ -43,8 +42,18 @@ namespace DuolingoTechPlatform.Controllers
             {
                 user.XP += xpEarned;
                 user.Level = user.XP / 100;
-                // streak e progresso podem ser atualizados em endpoints de lição
             }
+
+            _context.UserAnswers.Add(new UserAnswer
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                ExerciseId = exercise.Id,
+                SelectedOptionId = selectedOption.Id,
+                IsCorrect = isCorrect,
+                AnsweredAt = DateTime.UtcNow
+            });
+
             await _context.SaveChangesAsync();
 
             return Ok(new ExerciseAnswerResponseDto
@@ -64,8 +73,26 @@ namespace DuolingoTechPlatform.Controllers
             var exercises = await _context.Exercises
                 .Where(e => e.LessonId == lessonId)
                 .ToListAsync();
-            return Ok(exercises);
+
+            var result = new List<ExerciseWithOptionsDto>();
+            foreach (var ex in exercises)
+            {
+                var options = await _context.ExerciseOptions
+                    .Where(o => o.ExerciseId == ex.Id)
+                    .Select(o => new ExerciseOptionDto { Id = o.Id, Text = o.Text })
+                    .ToListAsync();
+
+                result.Add(new ExerciseWithOptionsDto
+                {
+                    Id = ex.Id,
+                    Question = ex.Question,
+                    Options = options
+                });
+            }
+
+            return Ok(result);
         }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Exercise exercise)
         {

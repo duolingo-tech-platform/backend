@@ -140,6 +140,9 @@ namespace DuolingoTechPlatform.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("LastActivityDate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("Level")
                         .HasColumnType("integer");
 

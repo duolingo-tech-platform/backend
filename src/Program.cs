@@ -1,22 +1,25 @@
-using DuolingoTechPlatform.Helpers;
 using DuolingoTechPlatform.Data;
-using Microsoft.EntityFrameworkCore;
+using DuolingoTechPlatform.Helpers;
+using DuolingoTechPlatform.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-using Microsoft.OpenApi;
-
-
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<JwtHelper>();
+// CORS — permite qualquer origem para desenvolvimento (restrinja em produção)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+});
 
-// Conexão com PostgreSQL
+// Banco de dados
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
+// JWT
 builder.Services.AddSingleton<JwtHelper>();
 
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "super_secret_jwt_key_change_me";
@@ -39,7 +42,6 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
     };
 });
-
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -67,15 +69,21 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-
-
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 
 var app = builder.Build();
 
+// Aplica migrations pendentes e faz seed de dados ao iniciar
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+    await DbInitializer.SeedAsync(db);
+}
 
-// Swagger sempre disponível
+app.UseMiddleware<ErrorHandlingMiddleware>();
+
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -83,6 +91,7 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = string.Empty;
 });
 
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 

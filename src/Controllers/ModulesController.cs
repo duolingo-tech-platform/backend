@@ -25,6 +25,20 @@ namespace DuolingoTechPlatform.Controllers
             return Ok(module);
         }
 
+        [HttpGet("{id}/lessons")]
+        public async Task<IActionResult> GetLessons(Guid id)
+        {
+            var exists = await _context.Modules.AnyAsync(m => m.Id == id);
+            if (!exists) return NotFound();
+
+            var lessons = await _context.Lessons
+                .Where(l => l.ModuleId == id)
+                .OrderBy(l => l.Order)
+                .ToListAsync();
+
+            return Ok(lessons);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Module module)
         {

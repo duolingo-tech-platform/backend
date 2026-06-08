@@ -43,5 +43,19 @@ namespace DuolingoTechPlatform.Controllers
             if (course == null) return NotFound();
             return Ok(course);
         }
+
+        [HttpGet("{id}/modules")]
+        public async Task<IActionResult> GetModules(Guid id)
+        {
+            var exists = await _context.Courses.AnyAsync(c => c.Id == id);
+            if (!exists) return NotFound();
+
+            var modules = await _context.Modules
+                .Where(m => m.CourseId == id)
+                .OrderBy(m => m.Order)
+                .ToListAsync();
+
+            return Ok(modules);
+        }
     }
 }

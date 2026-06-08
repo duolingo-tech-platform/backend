@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace DuolingoTechPlatform.Controllers
@@ -30,7 +29,6 @@ namespace DuolingoTechPlatform.Controllers
 
             var progress = await _context.UserProgress
                 .Where(up => up.UserId == userGuid)
-                .Include(up => up.LessonId)
                 .ToListAsync();
 
             var user = await _context.Users.FindAsync(userGuid);
@@ -41,7 +39,7 @@ namespace DuolingoTechPlatform.Controllers
                 level = user?.Level ?? 0,
                 streak = user?.Streak ?? 0,
                 lessonsCompleted = progress.Count,
-                lessons = progress.Select(up => up.LessonId)
+                lessonIds = progress.Select(up => up.LessonId)
             });
         }
 
@@ -54,12 +52,37 @@ namespace DuolingoTechPlatform.Controllers
             if (userProgress.LessonId == Guid.Empty)
                 return BadRequest(new { message = "LessonId is required." });
 
-            userProgress.Id = Guid.NewGuid();
-            userProgress.UserId = Guid.Parse(userId);
-            userProgress.CompletedAt = DateTime.UtcNow;
-            _context.UserProgress.Add(userProgress);
+            var userGuid = Guid.Parse(userId);
+
+            var alreadyCompleted = await _context.UserProgress
+                .AnyAsync(up => up.UserId == userGuid && up.LessonId == userProgress.LessonId);
+
+            if (!alreadyCompleted)
+            {
+                userProgress.Id = Guid.NewGuid();
+                userProgress.UserId = userGuid;
+                userProgress.CompletedAt = DateTime.UtcNow;
+                _context.UserProgress.Add(userProgress);
+            }
+
+            var user = await _context.Users.FindAsync(userGuid);
+            if (user != null)
+            {
+                var today = DateTime.UtcNow.Date;
+                if (user.LastActivityDate == null || user.LastActivityDate.Value.Date < today)
+                {
+                    var yesterday = today.AddDays(-1);
+                    if (user.LastActivityDate?.Date == yesterday)
+                        user.Streak += 1;
+                    else
+                        user.Streak = 1;
+
+                    user.LastActivityDate = DateTime.UtcNow;
+                }
+            }
+
             await _context.SaveChangesAsync();
-            return Ok(userProgress);
+            return Ok(new { message = "Progresso registrado.", streak = user?.Streak ?? 0 });
         }
     }
 }

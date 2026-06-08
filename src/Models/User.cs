@@ -11,5 +11,6 @@ namespace DuolingoTechPlatform.Models
         public int XP { get; set; }
         public int Level { get; set; }
         public int Streak { get; set; }
+        public DateTime? LastActivityDate { get; set; }
     }
 }
