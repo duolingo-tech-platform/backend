@@ -24,6 +24,11 @@ namespace DuolingoTechPlatform.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
+            if (string.IsNullOrWhiteSpace(dto?.Name) ||
+                string.IsNullOrWhiteSpace(dto?.Email) ||
+                string.IsNullOrWhiteSpace(dto?.Password))
+                return BadRequest(new { message = "Preencha todos os campos." });
+
             if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
                 return BadRequest(new { message = "Email já cadastrado." });
 

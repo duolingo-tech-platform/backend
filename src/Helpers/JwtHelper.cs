@@ -19,8 +19,8 @@ namespace DuolingoTechPlatform.Helpers
 
         public string GenerateToken(User user)
         {
-            var jwtKey = _configuration["Jwt:Key"];
-            var jwtIssuer = _configuration["Jwt:Issuer"];
+            var jwtKey = _configuration["Jwt:Key"] ?? "super_secret_jwt_key_change_me_in_production_min_32_chars!";
+            var jwtIssuer = _configuration["Jwt:Issuer"] ?? "DuolingoTechPlatform";
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 

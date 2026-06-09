@@ -44,6 +44,10 @@ namespace DuolingoTechPlatform.Controllers
                 user.Level = user.XP / 100;
             }
 
+            var correctOption = await _context.ExerciseOptions
+                .Where(o => o.ExerciseId == exercise.Id && o.IsCorrect)
+                .FirstOrDefaultAsync();
+
             _context.UserAnswers.Add(new UserAnswer
             {
                 Id = Guid.NewGuid(),
@@ -59,6 +63,7 @@ namespace DuolingoTechPlatform.Controllers
             return Ok(new ExerciseAnswerResponseDto
             {
                 IsCorrect = isCorrect,
+                CorrectOptionId = correctOption?.Id ?? Guid.Empty,
                 XP = user.XP,
                 Level = user.Level,
                 Streak = user.Streak,

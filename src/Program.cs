@@ -3,8 +3,14 @@ using DuolingoTechPlatform.Helpers;
 using DuolingoTechPlatform.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+
+// Mantém "sub" como "sub" nos claims — sem esse Clear(), o ASP.NET Core
+// mapeia "sub" para ClaimTypes.NameIdentifier e User.Claims.FirstOrDefault(c => c.Type == "sub") vira null
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
 var builder = WebApplication.CreateBuilder(args);
 
