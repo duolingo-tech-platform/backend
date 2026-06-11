@@ -13,6 +13,7 @@ namespace DuolingoTechPlatform.DTOs
     {
         public Guid Id { get; set; }
         public string Question { get; set; }
+        public string Type { get; set; }
         public List<ExerciseOptionDto> Options { get; set; }
     }
 }

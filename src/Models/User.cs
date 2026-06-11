@@ -12,5 +12,10 @@ namespace DuolingoTechPlatform.Models
         public int Level { get; set; }
         public int Streak { get; set; }
         public DateTime? LastActivityDate { get; set; }
+        public string? ResetCode { get; set; }
+        public DateTime? ResetCodeExpiry { get; set; }
+        public string? PushToken { get; set; }
+        public string? Bio { get; set; }
+        public bool ShowInRanking { get; set; } = true;
     }
 }

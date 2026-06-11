@@ -21,6 +21,7 @@ namespace DuolingoTechPlatform.Controllers
         public async Task<IActionResult> GetRanking([FromQuery] int top = 10)
         {
             var users = await _context.Users
+                .Where(u => u.ShowInRanking)
                 .OrderByDescending(u => u.XP)
                 .Take(top)
                 .ToListAsync();
@@ -30,7 +31,7 @@ namespace DuolingoTechPlatform.Controllers
                 Position = index + 1,
                 UserId = u.Id,
                 Name = u.Name,
-                XP = u.XP,
+                Xp = u.XP,
                 Level = u.Level,
                 Streak = u.Streak
             }).ToList();

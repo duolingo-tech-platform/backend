@@ -38,5 +38,33 @@ namespace DuolingoTechPlatform.Controllers
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetById), new { id = lesson.Id }, lesson);
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] Lesson updated)
+        {
+            var lesson = await _context.Lessons.FindAsync(id);
+            if (lesson == null) return NotFound();
+            if (!string.IsNullOrWhiteSpace(updated.Title)) lesson.Title = updated.Title;
+            if (!string.IsNullOrWhiteSpace(updated.Content)) lesson.Content = updated.Content;
+            if (updated.Order > 0) lesson.Order = updated.Order;
+            await _context.SaveChangesAsync();
+            return Ok(lesson);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var lesson = await _context.Lessons.FindAsync(id);
+            if (lesson == null) return NotFound();
+
+            // RN09 — não apagar lição com progresso de usuários
+            var hasProgress = await _context.UserProgress.AnyAsync(up => up.LessonId == id);
+            if (hasProgress)
+                return Conflict(new { message = "Não é possível excluir: existem usuários com progresso nesta lição." });
+
+            _context.Lessons.Remove(lesson);
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Lição deletada." });
+        }
     }
 }

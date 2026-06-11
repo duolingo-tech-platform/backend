@@ -52,5 +52,41 @@ namespace DuolingoTechPlatform.Controllers
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetById), new { id = module.Id }, module);
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] Module updated)
+        {
+            var module = await _context.Modules.FindAsync(id);
+            if (module == null) return NotFound();
+            if (!string.IsNullOrWhiteSpace(updated.Title)) module.Title = updated.Title;
+            if (updated.Order > 0) module.Order = updated.Order;
+            await _context.SaveChangesAsync();
+            return Ok(module);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var module = await _context.Modules.FindAsync(id);
+            if (module == null) return NotFound();
+
+            // RN09 — não apagar módulo cujas lições têm progresso
+            var lessonIds = await _context.Lessons
+                .Where(l => l.ModuleId == id)
+                .Select(l => l.Id)
+                .ToListAsync();
+
+            if (lessonIds.Count > 0)
+            {
+                var hasProgress = await _context.UserProgress
+                    .AnyAsync(up => lessonIds.Contains(up.LessonId));
+                if (hasProgress)
+                    return Conflict(new { message = "Não é possível excluir: existem usuários com progresso neste módulo." });
+            }
+
+            _context.Modules.Remove(module);
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Módulo deletado." });
+        }
     }
 }
