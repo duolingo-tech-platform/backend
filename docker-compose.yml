@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: duolingo_tech
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+
+  api:
+    build: .
+    ports:
+      - "80:80"
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=duolingo_tech;Username=postgres;Password=postgres"
+      Jwt__Key: "super_secret_jwt_key_change_me_in_production_min_32_chars!"
+      Jwt__Issuer: "DuolingoTechPlatform"
+      ASPNETCORE_ENVIRONMENT: "Production"
+    depends_on:
+      - postgres
+    restart: always
+
+volumes:
+  pgdata:
